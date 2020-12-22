@@ -15,7 +15,7 @@ import vueQr from "vue-qr";
 export default {
   data() {
     return {
-      url: "我爱你s",
+      url: "我爱你 fcy",
       icon: "",
     };
   },
