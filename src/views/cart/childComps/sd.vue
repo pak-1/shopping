@@ -6,7 +6,9 @@
 export default {
   name: "sd",
   data() {
-    return {};
+    return {
+      dasd,
+    };
   },
 };
 </script>
