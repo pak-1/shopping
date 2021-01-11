@@ -1,14 +1,12 @@
 <template>
-  <div class="sd"></div>
+  <div class="ds"></div>
 </template>
 
 <script>
 export default {
-  name: "sd",
+  name: "ds",
   data() {
-    return {
-      dasd,
-    };
+    return {};
   },
 };
 </script>

@@ -8,8 +8,7 @@
 </template>
 
 <script>
-import MaiTabBar from "components/content/MainTabBar.vue";
-import MainTabBar from "./components/content/MainTabBar.vue";
+import MainTabBar from "components/content/MainTabBar.vue";
 
 export default {
   name: "App",

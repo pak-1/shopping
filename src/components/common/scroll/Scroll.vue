@@ -35,7 +35,7 @@ export default {
       pullUpLoad: this.pullUpLoad,
     });
     // 监听滚动位置
-    this.scroll.on("scroll", position => {
+    this.scroll.on("scroll", (position) => {
       // console.log(position);
       this.$emit("scroll", position);
     });

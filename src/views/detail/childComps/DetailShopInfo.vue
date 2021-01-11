@@ -18,7 +18,11 @@
       </div>
       <div class="score">
         <ul class="score-list">
-          <li v-for="(item, index) in shop.score" class="score-item">
+          <li
+            v-for="(item, index) in shop.score"
+            class="score-item"
+            :key="index"
+          >
             <span>{{ item.name }}</span>
             <span :style="{ color: item.isBetter ? '#33D220' : '#FF281C' }">{{
               item.score
@@ -61,7 +65,8 @@ export default {
   data() {
     return {};
   },
-  created() {},
+  created() {
+  },
   filters: {
     sellCountFilter(value) {
       let result = value;

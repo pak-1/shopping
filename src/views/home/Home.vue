@@ -47,9 +47,13 @@ import NavBar from "components/common/navbar/NavBar.vue";
 import TabControl from "components/content/TabControl.vue";
 import GoodsList from "components/content/GoodsList.vue";
 import Scroll from "components/common/scroll/Scroll.vue";
-import BackTop from "components/content/BackTop.vue";
 
 import { getHomeMultidata, getHomeGoods } from "network/home.js";
+import { debounce } from "components/common/utils";
+import {
+  itemListenerMixin,
+  backTopMixin,
+} from "components/common/utils/mixin.js";
 export default {
   name: "Home",
   data() {
@@ -62,12 +66,12 @@ export default {
         sell: { page: 0, list: [] },
       },
       currentgoods: "pop",
-      isShowTop: false,
       tabControlOffsetTop: 0,
       isTabFixed: false,
       saveY: 0,
     };
   },
+  mixins: [itemListenerMixin, backTopMixin],
   created() {
     //请求轮播图，推荐数据
     this.getHomeMultidata();
@@ -75,12 +79,6 @@ export default {
     this.getHomeGoods("pop");
     this.getHomeGoods("new");
     this.getHomeGoods("sell");
-  },
-  mounted() {
-    const refresh = this.debounce(this.$refs.scroll.refresh, 200);
-    this.$bus.$on("imgload", () => {
-      refresh();
-    });
   },
 
   activated() {
@@ -90,6 +88,9 @@ export default {
   },
   deactivated() {
     this.saveY = this.$refs.scroll.scroll.y;
+
+    //关闭imgload监听
+    this.$bus.$off("imgload", this.itemImgListener);
   },
 
   computed: {
@@ -131,13 +132,11 @@ export default {
         this.$refs.scroll.finishPullUp();
       });
     },
-    backtop() {
-      this.$refs.scroll.scrollTo(0, 0, 500);
-    },
+
     // 监听滚动
     contentscroll(position) {
       // 1.是否显示backtop
-      this.isShowTop = -position.y > 1000;
+      this.isShowTop = -position.y > 2000;
 
       // 2.决定tabcontrol是否吸顶
       this.isTabFixed = -position.y > this.tabControlOffsetTop;
@@ -145,17 +144,6 @@ export default {
     loadMore() {
       // console.log("上拉加载更多");
       this.getHomeGoods(this.currentgoods);
-    },
-
-    // 防抖动函数
-    debounce(func, delay) {
-      let timer = null;
-      return function(...args) {
-        if (timer) clearTimeout(timer);
-        timer = setTimeout(() => {
-          func.apply(this, args);
-        }, delay);
-      };
     },
 
     //监听轮播图是否加载完成 获取tabControlOffsetTop
@@ -171,7 +159,6 @@ export default {
     TabControl,
     GoodsList,
     Scroll,
-    BackTop,
   },
 };
 </script>

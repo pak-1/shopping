@@ -1,7 +1,7 @@
 <template>
   <div class="detail">
-    <detail-nav-bar @navBarClick="navBarClick"></detail-nav-bar>
-    <scroll class="content" ref="scroll">
+    <detail-nav-bar @navBarClick="navBarClick" ref="detnavbar"></detail-nav-bar>
+    <scroll class="content" ref="scroll" :probeType="3" @scroll="scrollPositon">
       <detail-swiper :topImages="topimg"></detail-swiper>
       <detail-base-info :goods="goods"></detail-base-info>
       <detail-shop-info :shop="shop"></detail-shop-info>
@@ -9,10 +9,14 @@
         :detailInfo="detailInfo"
         @imgload="imgload"
       ></detail-img-info>
-      <detail-params-info :paramsInfo="paramsInfo"></detail-params-info>
-      <detai-comment-info :comment-info="commentInfo" />
-      <goods-list :goods="recommendList" />
+      <detail-params-info
+        :paramsInfo="paramsInfo"
+        ref="params"
+      ></detail-params-info>
+      <detai-comment-info :comment-info="commentInfo" ref="comment" />
+      <goods-list :goods="recommendList" ref="recommend" />
     </scroll>
+    <back-top @click.native="backtop" v-show="isShowTop"></back-top>
     <detai-bottom-bar v-on:toShopCar="toShopCar"></detai-bottom-bar>
   </div>
 </template>
@@ -29,6 +33,11 @@ import DetaiCommentInfo from "./childComps/DetaiCommentInfo.vue";
 import Scroll from "components/common/scroll/Scroll";
 import GoodsList from "components/content/GoodsList.vue";
 import DetaiBottomBar from "./childComps/DetaiBottomBar.vue";
+import { debounce } from "components/common/utils";
+import {
+  itemListenerMixin,
+  backTopMixin,
+} from "components/common/utils/mixin.js";
 export default {
   name: "Detail",
   data() {
@@ -41,9 +50,12 @@ export default {
       paramsInfo: {},
       commentInfo: {},
       recommendList: [],
-      topY: [0, 1000, 2000, 3000],
+      topY: [],
+      themeTopY: null,
+      currentIndex: 0,
     };
   },
+  mixins: [itemListenerMixin, backTopMixin],
   components: {
     DetailNavBar,
     DetailSwiper,
@@ -59,7 +71,7 @@ export default {
   created() {
     this.iid = this.$route.params.iid;
 
-    getDetail(this.iid).then((res) => {
+    getDetail(this.iid).then(res => {
       let data = res.result;
       //轮播图
       this.topimg = data.itemInfo.topImages;
@@ -82,13 +94,28 @@ export default {
     });
 
     // 推荐列表数据
-    getRecommend().then((res) => {
+    getRecommend().then(res => {
       this.recommendList = res.data.list;
     });
+
+    this.themeTopY = debounce(() => {
+      this.topY = [];
+      this.topY.push(0);
+      this.topY.push(this.$refs.params.$el.offsetTop);
+      this.topY.push(this.$refs.comment.$el.offsetTop);
+      this.topY.push(this.$refs.recommend.$el.offsetTop);
+      this.topY.push(this.topY[3] * 2);
+
+      console.log(this.topY);
+    }, 200);
+  },
+  destroyed() {
+    this.$bus.$off("imgload", this.itemImgListener);
   },
   methods: {
     imgload() {
-      this.$refs.scroll.refresh();
+      this.refresh();
+      this.themeTopY();
     },
     navBarClick(index) {
       this.$refs.scroll.scrollTo(0, -this.topY[index]);
@@ -99,11 +126,29 @@ export default {
       product.image = this.topimg[0];
       product.title = this.goods.title;
       product.desc = this.goods.desc;
-      product.price = this.goods.newPrice;
+      product.price = this.goods.realPrice;
       product.iid = this.iid;
-
       // 将商品添加到购物车里
-      this.$store.commit("addCart", product);
+      this.$store.dispatch("addCart", product).then(res => {
+        this.$toast.methods.show(res, 2000);
+        console.log(this.$toast);
+      });
+    },
+    scrollPositon(position) {
+      const positionY = -position.y;
+      const length = this.topY.length;
+      for (let i = 0; i < length - 1; i++) {
+        if (
+          this.currentIndex !== i &&
+          positionY > this.topY[i] &&
+          positionY < this.topY[i + 1]
+        ) {
+          this.currentIndex = i;
+          this.$refs.detnavbar.currentIndex = this.currentIndex;
+        }
+      }
+
+      this.isShowTop = positionY > 2000;
     },
   },
 };
@@ -121,5 +166,5 @@ export default {
 }
 .goods {
   width: 100%;
-}
-</style>;
+}</style
+>;

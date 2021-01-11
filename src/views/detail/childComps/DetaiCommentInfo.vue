@@ -43,9 +43,6 @@ export default {
       },
     },
   },
-  mounted() {
-    console.log(this.commentInfo);
-  },
   filters: {
     showDate(value) {
       value = formatDate(value, "yyyy-MM-dd");
